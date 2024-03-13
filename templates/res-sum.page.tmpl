@@ -14,23 +14,23 @@
                     <tbody>
                     <tr>
                         <td>Name:</td>
-                        <td>{{index .DataMap "first_name"}} {{index .DataMap "last_name"}}</td>
+                        <td>{{ .FirstName }} {{ .LastName }}</td>
                     </tr>
                     <tr>
                         <td>Arrival:</td>
-                        <td></td>
+                        <td>{{ .StartDate }}</td>
                     </tr>
                     <tr>
                         <td>Departure:</td>
-                        <td></td>
+                        <td>{{ .EndDate }}</td>
                     </tr>
                     <tr>
                         <td>Email:</td>
-                        <td>{{index .DataMap "email"}}</td>
+                        <td>{{ .Email }}</td>
                     </tr>
                     <tr>
                         <td>Phone:</td>
-                        <td>{{index .DataMap "phone"}}</td>
+                        <td>{{ .Phone }}</td>
                     </tr>
                     </tbody>
                 </table>

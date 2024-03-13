@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/go-chi/chi"
+	"github.com/google/uuid"
 	"github.com/justinas/nosurf"
 	"nicksrepo.com/nick/pkg/config"
 	"nicksrepo.com/nick/pkg/database"
@@ -31,7 +32,6 @@ func NewRepository(a *config.App, db *database.DB) {
 func (repo *Repository) Home(w http.ResponseWriter, r *http.Request) {
 	repo.App.Session.Put(r.Context(), "rem_ip", r.RemoteAddr)
 
-	//Django Style
 	data := &struct {
 		Name    string
 		SurName string
@@ -49,7 +49,7 @@ func (repo *Repository) Home(w http.ResponseWriter, r *http.Request) {
 func (repo *Repository) About(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "GET" {
-		//Django Style
+
 		data := &struct {
 			Name      string
 			SurName   string
@@ -69,7 +69,6 @@ func (repo *Repository) About(w http.ResponseWriter, r *http.Request) {
 
 func (repo *Repository) GeneralQuarters(w http.ResponseWriter, r *http.Request) {
 
-	//Django Style
 	data := &struct {
 		Name      string
 		SurName   string
@@ -88,7 +87,6 @@ func (repo *Repository) GeneralQuarters(w http.ResponseWriter, r *http.Request) 
 
 func (repo *Repository) Majors(w http.ResponseWriter, r *http.Request) {
 
-	//Django Style
 	data := &struct {
 		Name      string
 		SurName   string
@@ -107,38 +105,71 @@ func (repo *Repository) Majors(w http.ResponseWriter, r *http.Request) {
 
 func (repo *Repository) SearchAvailability(w http.ResponseWriter, r *http.Request) {
 
-	err := r.ParseForm()
-
-	if err != nil {
-		log.Println(err)
-		return
-	}
-
-	start := r.Form.Get("start")
-	end := r.Form.Get("end")
-
 	if r.Method == "POST" {
-		rooms, err := repo.DB.AvailabilitySearch(start, end)
+
+		var resData models.Reservation
+
+		//PARSING FORM VALUES
+		err := r.ParseForm()
+
+		if err != nil {
+			log.Println(err)
+			return
+		}
+
+		//Convertingg date to time.Time
+		dateFormat := "2006-01-02"
+
+		start, err := time.Parse(dateFormat, r.Form.Get("start"))
+
+		if err != nil {
+			http.Error(w, "Failed to Make Reservation Please use 2024-01-02 StartDate Format", http.StatusBadRequest)
+			log.Println("Failed to Write in StartDate Database", start, "\n", err)
+			return
+		}
+
+		end, err := time.Parse(dateFormat, r.Form.Get("end"))
+
+		if err != nil {
+			http.Error(w, "Failed to Make Reservation Please use 2024-01-02 EndDate Format", http.StatusBadRequest)
+			log.Println("Failed to Write in EndDate Database", end, "\n", err)
+			return
+		}
+
+		//Adding dates to Rservation model
+		resData.StartDate = start
+		resData.EndDate = end
+
+		rooms, err := repo.DB.AvailabilitySearch(r.Form.Get("start"), r.Form.Get("end"))
+
 		if err != nil {
 			log.Println(err)
 		}
 
+		resId := uuid.New().String()
+
+		fmt.Println(rooms)
+
 		data := &struct {
 			Rooms     []*models.SearchAvailabilityModel
-			StartDate string
-			EndDate   string
+			ResId     string
 			CSRFtoken string
 		}{
 			rooms,
-			start,
-			end,
+			resId,
 			nosurf.Token(r),
 		}
 
+		//Creating Id for Reservation Request
+
+		repo.App.Session.Put(r.Context(), resId, resData)
+
+		log.Println("POST:", r.RemoteAddr, "/search-availability HTTP: 200")
 		render.Render(w, "availability.page.tmpl", data)
+
 		return
 	}
-	//Django Style
+
 	data := &struct {
 		CSRFtoken string
 	}{
@@ -151,10 +182,8 @@ func (repo *Repository) SearchAvailability(w http.ResponseWriter, r *http.Reques
 
 func (repo *Repository) BookNow(w http.ResponseWriter, r *http.Request) {
 
-	/*IN THIS FUNCTION URL QUERIES ARE USED FOR START AND END DATES
-	THE BEST PRACTICE HERE IS TO USE THE SESSION MECHANISM WITH A UNIQUE REQUEST ID FOR EVERY SO THE START AND END DATE ARE STORED.*/
-
 	if r.Method == "POST" {
+		query := r.URL.Query().Get("ri")
 
 		err := r.ParseForm()
 		if err != nil {
@@ -169,44 +198,42 @@ func (repo *Repository) BookNow(w http.ResponseWriter, r *http.Request) {
 			form.Has(field)
 		}
 
-		dateFormat := "2006-01-02"
-		//sdrf
-		startDate, err := time.Parse(dateFormat, r.URL.Query().Get("startdate"))
+		res, ok := repo.App.Session.Get(r.Context(), query).(models.Reservation)
 
-		if err != nil {
-			http.Error(w, "Failed to Make Reservation Please use 2024-01-02 StartDate Format", http.StatusBadRequest)
-			log.Println("Failed to Write in StartDate Database", startDate, "\n", err)
-			return
-		}
-
-		endDate, err := time.Parse(dateFormat, r.URL.Query().Get("enddate"))
-
-		if err != nil {
-			http.Error(w, "Failed to Make Reservation Please use 2024-01-02 EndDate Format", http.StatusBadRequest)
-			log.Println("Failed to Write in EndDate Database", endDate, "\n", err)
+		if !ok {
+			log.Println("Something Went Wrong")
+			fmt.Fprintf(w, "Something went wrong")
 			return
 		}
 
 		//Last check of availability
 		id := chi.URLParam(r, "id")
 
-		form.ValidForm, _ = repo.DB.LastAvailabilitySearch(id, startDate, endDate)
+		form.ValidForm, _ = repo.DB.LastAvailabilitySearch(id, res.StartDate, res.EndDate)
 
 		//Check Form Validation
 		if !form.IsValid() {
 			log.Println("POST:", r.RemoteAddr, "/book-now HTTP: 400")
-			http.Redirect(w, r, "/book-now/"+id+"?startdate="+r.URL.Query().Get("startdate")+"&&enddate="+r.URL.Query().Get("enddate"), http.StatusSeeOther)
+			http.Redirect(w, r, "/book-now/"+id+"?ri="+query, http.StatusSeeOther)
+			return
+		}
+
+		idInt, err := strconv.Atoi(id)
+
+		if err != nil {
+			log.Println("Something Went Wrong")
+			fmt.Fprintf(w, "Something went wrong")
 			return
 		}
 
 		reservation := &models.Reservation{
-			RoomId:    1,
+			RoomId:    idInt,
 			FirstName: r.Form.Get("first_name"),
 			LastName:  r.Form.Get("last_name"),
 			Email:     r.Form.Get("email"),
 			Phone:     r.Form.Get("phone"),
-			StartDate: startDate,
-			EndDate:   endDate,
+			StartDate: res.StartDate,
+			EndDate:   res.EndDate,
 		}
 
 		resvId, err := repo.DB.InsertReservation(reservation)
@@ -224,11 +251,11 @@ func (repo *Repository) BookNow(w http.ResponseWriter, r *http.Request) {
 		}
 
 		roomRestriction := &models.RoomRestriction{
-			RoomId:        1,
+			RoomId:        idInt,
 			ReservationId: int(resvId),
 			RestrictionId: 1,
-			StartDate:     startDate,
-			EndDate:       endDate,
+			StartDate:     res.StartDate,
+			EndDate:       res.EndDate,
 		}
 
 		_, err = repo.DB.InsertRoomRestriction(roomRestriction)
@@ -243,14 +270,14 @@ func (repo *Repository) BookNow(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		repo.App.Session.Put(r.Context(), "reservation" /*+resvId.String()*/, r.Form)
+		//Updating session data
+		repo.App.Session.Put(r.Context(), query, reservation)
 
 		log.Println("POST:", r.RemoteAddr, "/book-now HTTP: 200")
-		http.Redirect(w, r, "/reservation-summary", http.StatusSeeOther)
+		http.Redirect(w, r, "/reservation-summary?ri="+query, http.StatusSeeOther)
 		return
 	}
 
-	//Django Style
 	data := &struct {
 		Id        string
 		CSRFtoken string
@@ -264,8 +291,8 @@ func (repo *Repository) BookNow(w http.ResponseWriter, r *http.Request) {
 }
 
 func (repo *Repository) ReservationSumary(w http.ResponseWriter, r *http.Request) {
-	values, ok := repo.App.Session.Get(r.Context(), "reservation").(url.Values)
-	res := make(map[string]string)
+	query := r.URL.Query().Get("ri")
+	res, ok := repo.App.Session.Get(r.Context(), query).(models.Reservation)
 
 	if !ok {
 		fmt.Fprintf(w, "No Recent Reservations")
@@ -273,25 +300,17 @@ func (repo *Repository) ReservationSumary(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	for i, v := range values {
-		if i == "csrf_token" {
-			continue
-		}
+	fmt.Println(res)
 
-		res[i] = v[0]
+	repo.App.Session.Remove(r.Context(), query)
 
-	}
-
-	repo.App.Session.Remove(r.Context(), "reservation")
-
-	render.Render(w, "res-sum.page.tmpl", &struct{ DataMap map[string]string }{res})
+	render.Render(w, "res-sum.page.tmpl", res)
 	log.Println("GET:", r.RemoteAddr, "/resarvation-summary HTTP: 200")
 
 }
 
 func (repo *Repository) Contact(w http.ResponseWriter, r *http.Request) {
 
-	//Django Style
 	data := &struct {
 		Name      string
 		SurName   string

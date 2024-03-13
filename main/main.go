@@ -13,6 +13,7 @@ import (
 	"nicksrepo.com/nick/pkg/database"
 	handlerfuntions "nicksrepo.com/nick/pkg/handlerFuntions"
 	"nicksrepo.com/nick/pkg/middlewares"
+	"nicksrepo.com/nick/pkg/models"
 	"nicksrepo.com/nick/pkg/render"
 	"nicksrepo.com/nick/pkg/routers"
 )
@@ -44,6 +45,7 @@ func run(app *config.App) (*database.DB, *http.Server, error) {
 	var cacheError error
 
 	gob.Register(url.Values{})
+	gob.Register(models.Reservation{})
 
 	//Cache the Templates in Servers Memory
 	app.Template, cacheError = render.CreateTmplCache()
