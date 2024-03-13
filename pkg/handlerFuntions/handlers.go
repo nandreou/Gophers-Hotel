@@ -170,7 +170,7 @@ func (repo *Repository) BookNow(w http.ResponseWriter, r *http.Request) {
 		}
 
 		dateFormat := "2006-01-02"
-
+		//sdrf
 		startDate, err := time.Parse(dateFormat, r.URL.Query().Get("startdate"))
 
 		if err != nil {
