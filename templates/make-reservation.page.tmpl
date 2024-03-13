@@ -1,0 +1,71 @@
+{{template "base" .}}
+
+{{define "content"}}
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                <h1 class="mt-3">Make Reservation</h1>
+
+                <form method="post" id= "hotelform" action="" class="needs-validation" novalidate>
+                   <input type="hidden" name="csrf_token" value={{.CSRFtoken}}>
+                    <div class="form-group mt-3">
+                        <label for="first_name">First Name:</label>
+                        <input class="form-control"
+                               id="first_name" autocomplete="off" type='text'
+                               name='first_name' value="" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="last_name">Last Name:</label>
+                        <input class="form-control"
+                               id="last_name" autocomplete="off" type='text'
+                               name='last_name' value="" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email:</label>
+                        <input class="form-control" id="email"
+                               autocomplete="off" type='email'
+                               name='email' value="" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phone">Phone:</label>
+                        <input class="form-control" id="phone"
+                               autocomplete="off" type='number'
+                               name='phone' value="" required>
+                    </div>
+
+                    <hr>
+                    <input type="submit" class="btn btn-primary" value="Make Reservation">
+                </form>
+
+
+            </div>
+        </div>
+
+    </div>
+{{end}}
+
+{{define "js"}}
+
+<script>
+    /*document.getElementById("hotelform").addEventListener("submit", (event) => {
+        event.preventDefault()
+        form = event.target
+        data = new FormData(form)
+        data.append("csrf_token", `{{.CSRFtoken}}`)
+
+        fetch("/book-now/{{.Id}}",{
+            method: "POST",
+            body: data
+        })
+        .then(response => response.text())
+        .then(html => {if (html === "NotValid"){
+            window
+        }
+    })
+    })*/
+</script>
+
+{{end}}

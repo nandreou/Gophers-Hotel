@@ -1,0 +1,40 @@
+{{template "base" .}}
+
+{{define "content"}}
+
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                <h1 class="mt-5">Reservation Summary</h1>
+
+                <hr>
+                
+                <table class="table table-striped">
+                    <thead></thead>
+                    <tbody>
+                    <tr>
+                        <td>Name:</td>
+                        <td>{{index .DataMap "first_name"}} {{index .DataMap "last_name"}}</td>
+                    </tr>
+                    <tr>
+                        <td>Arrival:</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>Departure:</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>Email:</td>
+                        <td>{{index .DataMap "email"}}</td>
+                    </tr>
+                    <tr>
+                        <td>Phone:</td>
+                        <td>{{index .DataMap "phone"}}</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{{end}}

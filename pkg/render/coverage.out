@@ -1,0 +1,22 @@
+mode: set
+nicksrepo.com/nick/pkg/render/render.go:17.30,19.2 1 1
+nicksrepo.com/nick/pkg/render/render.go:21.63,25.16 3 1
+nicksrepo.com/nick/pkg/render/render.go:25.16,27.3 1 0
+nicksrepo.com/nick/pkg/render/render.go:29.2,29.29 1 1
+nicksrepo.com/nick/pkg/render/render.go:29.29,34.17 4 1
+nicksrepo.com/nick/pkg/render/render.go:34.17,36.4 1 0
+nicksrepo.com/nick/pkg/render/render.go:38.3,39.17 2 1
+nicksrepo.com/nick/pkg/render/render.go:39.17,41.4 1 0
+nicksrepo.com/nick/pkg/render/render.go:43.3,43.23 1 1
+nicksrepo.com/nick/pkg/render/render.go:43.23,45.18 2 0
+nicksrepo.com/nick/pkg/render/render.go:45.18,47.5 1 0
+nicksrepo.com/nick/pkg/render/render.go:49.3,49.25 1 1
+nicksrepo.com/nick/pkg/render/render.go:52.2,52.19 1 1
+nicksrepo.com/nick/pkg/render/render.go:55.71,56.14 1 1
+nicksrepo.com/nick/pkg/render/render.go:56.14,59.17 2 1
+nicksrepo.com/nick/pkg/render/render.go:59.17,62.4 2 0
+nicksrepo.com/nick/pkg/render/render.go:64.3,64.28 1 1
+nicksrepo.com/nick/pkg/render/render.go:66.8,68.10 2 1
+nicksrepo.com/nick/pkg/render/render.go:68.10,71.4 2 0
+nicksrepo.com/nick/pkg/render/render.go:71.9,73.4 1 1
+nicksrepo.com/nick/pkg/render/render.go:76.2,76.12 1 1
