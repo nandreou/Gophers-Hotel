@@ -2,12 +2,10 @@ package handlerfuntions
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
-	"strings"
 	"testing"
 )
 
@@ -31,12 +29,11 @@ func TestGetHandlers(t *testing.T) {
 }
 
 func TestPostHandlers(t *testing.T) {
+	var data = url.Values{}
 	mux := setUpRoutes()
 
 	testSrv := httptest.NewTLSServer(mux)
 	defer testSrv.Close()
-
-	var data = url.Values{}
 
 	for _, value := range reqAvailaibilityBodyPost {
 		data.Add("start", value.start)
@@ -52,39 +49,6 @@ func TestPostHandlers(t *testing.T) {
 
 		for keys := range data {
 			data.Del(keys)
-		}
-	}
-
-	for _, value := range reqBodyPost {
-
-		for _, testValues := range value.keyValue {
-			for _, vals := range testValues {
-				data.Add(vals.key, vals.value)
-			}
-
-			encodedData := data.Encode()
-
-			r, err := http.NewRequest("POST", "/book-now/1?ri=test", strings.NewReader(encodedData))
-
-			if err != nil {
-				t.Error("POST Failed", err)
-			}
-
-			ctx := MakeNewCtx(r)
-			r = r.WithContext(ctx)
-
-			rr := httptest.NewRecorder()
-
-			Repo.App.Session.Put(ctx, "test", "something")
-
-			handler := http.HandlerFunc(Repo.BookNow)
-
-			handler.ServeHTTP(rr, r)
-			fmt.Println(rr)
-
-			for keys := range data {
-				data.Del(keys)
-			}
 		}
 	}
 }

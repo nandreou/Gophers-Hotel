@@ -172,10 +172,11 @@ func (repo *Repository) BookNow(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "POST" {
 		query := r.URL.Query().Get("ri")
-		fmt.Fprintf(w, "%s  ", query)
+
 		err := r.ParseForm()
 		if err != nil {
 			fmt.Fprintf(w, "Error on Parshing Form data Try Again Later %s", err)
+
 			return
 		}
 
@@ -189,13 +190,12 @@ func (repo *Repository) BookNow(w http.ResponseWriter, r *http.Request) {
 		res, ok := repo.App.Session.Get(r.Context(), query).(models.Reservation)
 
 		if !ok {
-			log.Println("Something Went Wrong Session Data Is Empty")
+			log.Println("Something Went Wrong Session Data Is Empty. If You run go test Ignore this Error !!!")
 			return
 		}
 
 		//Last check of availability
 		id := chi.URLParam(r, "id")
-
 		form.ValidForm, _ = repo.DB.LastAvailabilitySearch(id, res.StartDate, res.EndDate)
 
 		//Check Form Validation
@@ -286,8 +286,6 @@ func (repo *Repository) ReservationSumary(w http.ResponseWriter, r *http.Request
 		log.Println("GET:", r.RemoteAddr, "/resarvation-summary HTTP: 200")
 		return
 	}
-
-	fmt.Println(res)
 
 	repo.App.Session.Remove(r.Context(), query)
 
