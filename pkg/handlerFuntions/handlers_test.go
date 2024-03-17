@@ -75,7 +75,7 @@ func TestPostHandlers(t *testing.T) {
 
 			rr := httptest.NewRecorder()
 
-			app.Session.Put(ctx, "test", "something")
+			Repo.App.Session.Put(ctx, "test", "something")
 
 			handler := http.HandlerFunc(Repo.BookNow)
 

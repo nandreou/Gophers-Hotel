@@ -190,7 +190,6 @@ func (repo *Repository) BookNow(w http.ResponseWriter, r *http.Request) {
 
 		if !ok {
 			log.Println("Something Went Wrong Session Data Is Empty")
-			fmt.Fprintf(w, "Something Went Wrong Session Data Is Empty")
 			return
 		}
 
