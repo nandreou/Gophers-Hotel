@@ -32,17 +32,7 @@ func NewRepository(a *config.App, db *database.DB) {
 func (repo *Repository) Home(w http.ResponseWriter, r *http.Request) {
 	repo.App.Session.Put(r.Context(), "rem_ip", r.RemoteAddr)
 
-	data := &struct {
-		Name    string
-		SurName string
-		Age     int
-	}{
-		"Nick",
-		"Andreou",
-		29,
-	}
-
-	render.Render(w, "home.page.tmpl", data)
+	render.Render(w, "home.page.tmpl", nil)
 	log.Println("GET:", r.RemoteAddr, "/ HTTP: 200")
 }
 
@@ -107,7 +97,7 @@ func (repo *Repository) SearchAvailability(w http.ResponseWriter, r *http.Reques
 
 	if r.Method == "POST" {
 
-		var resData models.Reservation
+		resData := &models.Reservation{}
 
 		//PARSING FORM VALUES
 		err := r.ParseForm()
@@ -148,8 +138,6 @@ func (repo *Repository) SearchAvailability(w http.ResponseWriter, r *http.Reques
 
 		resId := uuid.New().String()
 
-		fmt.Println(rooms)
-
 		data := &struct {
 			Rooms     []*models.SearchAvailabilityModel
 			ResId     string
@@ -184,10 +172,10 @@ func (repo *Repository) BookNow(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "POST" {
 		query := r.URL.Query().Get("ri")
-
+		fmt.Fprintf(w, "%s  ", query)
 		err := r.ParseForm()
 		if err != nil {
-			fmt.Fprintf(w, "Error on writing data Try Again Later")
+			fmt.Fprintf(w, "Error on Parshing Form data Try Again Later %s", err)
 			return
 		}
 
@@ -201,8 +189,8 @@ func (repo *Repository) BookNow(w http.ResponseWriter, r *http.Request) {
 		res, ok := repo.App.Session.Get(r.Context(), query).(models.Reservation)
 
 		if !ok {
-			log.Println("Something Went Wrong")
-			fmt.Fprintf(w, "Something went wrong")
+			log.Println("Something Went Wrong Session Data Is Empty")
+			fmt.Fprintf(w, "Something Went Wrong Session Data Is Empty")
 			return
 		}
 

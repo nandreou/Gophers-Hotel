@@ -47,6 +47,10 @@ func run(app *config.App) (*database.DB, *http.Server, error) {
 	gob.Register(url.Values{})
 	gob.Register(models.Reservation{})
 
+	//Pass App config In Pakages
+	render.NewCache(app)
+	middlewares.PassConfigToMidPkg(app)
+
 	//Cache the Templates in Servers Memory
 	app.Template, cacheError = render.CreateTmplCache()
 
@@ -79,10 +83,6 @@ func run(app *config.App) (*database.DB, *http.Server, error) {
 	} else {
 		log.Println("Connected to Database")
 	}
-
-	//Pass App config In Pakages
-	render.NewCache(app)
-	middlewares.PassConfigToMidPkg(app)
 
 	//Create Repository
 	handlerfuntions.NewRepository(app, db)
