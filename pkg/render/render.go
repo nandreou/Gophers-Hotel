@@ -20,7 +20,7 @@ func NewCache(a *config.App) {
 
 func CreateTmplCache() (map[string]*template.Template, error) {
 	Cache := map[string]*template.Template{}
-	pages, err := filepath.Glob(pathToTestTemplates)
+	pages, err := filepath.Glob(pathToTemplates)
 
 	if err != nil {
 		return nil, err

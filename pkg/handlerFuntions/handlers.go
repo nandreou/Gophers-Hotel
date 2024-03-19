@@ -1,6 +1,7 @@
 package handlerfuntions
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -60,14 +61,8 @@ func (repo *Repository) About(w http.ResponseWriter, r *http.Request) {
 func (repo *Repository) GeneralQuarters(w http.ResponseWriter, r *http.Request) {
 
 	data := &struct {
-		Name      string
-		SurName   string
-		Age       int
 		CSRFtoken string
 	}{
-		"Nick",
-		"Andreou",
-		29,
 		nosurf.Token(r),
 	}
 
@@ -78,14 +73,8 @@ func (repo *Repository) GeneralQuarters(w http.ResponseWriter, r *http.Request) 
 func (repo *Repository) Majors(w http.ResponseWriter, r *http.Request) {
 
 	data := &struct {
-		Name      string
-		SurName   string
-		Age       int
 		CSRFtoken string
 	}{
-		"Nick",
-		"Andreou",
-		29,
 		nosurf.Token(r),
 	}
 
@@ -168,6 +157,77 @@ func (repo *Repository) SearchAvailability(w http.ResponseWriter, r *http.Reques
 	log.Println("GET:", r.RemoteAddr, "/search-availability HTTP: 200")
 }
 
+func (repo *Repository) SearchAvailabilityByRoom(w http.ResponseWriter, r *http.Request) {
+	var (
+		resp struct {
+			OK     bool   `json:"ok"`
+			ResId  string `json:"ri"`
+			RoomId string `json:"room_id"`
+		}
+		resData = &models.Reservation{}
+	)
+
+	encoder := json.NewEncoder(w)
+
+	w.Header().Set("Content-Type", "application/json")
+
+	err := r.ParseForm()
+
+	if err != nil {
+		resp.OK = false
+		encoder.Encode(resp)
+		return
+	}
+
+	dateFormat := "2006-01-02"
+
+	start, err := time.Parse(dateFormat, r.Form.Get("start"))
+
+	if err != nil {
+		resp.OK = false
+		encoder.Encode(resp)
+		log.Println(err)
+		return
+	}
+
+	end, err := time.Parse(dateFormat, r.Form.Get("end"))
+
+	if err != nil {
+		resp.OK = false
+		encoder.Encode(resp)
+		log.Println(err)
+		return
+	}
+
+	exists, err := repo.DB.RoomAvailabilitySearch(r.Form.Get("room_id"), start, end)
+
+	if err != nil {
+		resp.OK = false
+		encoder.Encode(resp)
+		log.Println(err)
+		return
+	}
+
+	if exists {
+		resp.OK = true
+		resp.ResId = uuid.New().String()
+		resp.RoomId = r.Form.Get("room_id")
+
+		resData.StartDate = start
+		resData.EndDate = end
+
+		repo.App.Session.Put(r.Context(), resp.ResId, resData)
+
+		encoder.Encode(resp)
+		return
+	} else {
+		resp.OK = false
+		encoder.Encode(resp)
+		return
+	}
+
+}
+
 func (repo *Repository) BookNow(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "POST" {
@@ -196,7 +256,7 @@ func (repo *Repository) BookNow(w http.ResponseWriter, r *http.Request) {
 
 		//Last check of availability
 		id := chi.URLParam(r, "id")
-		form.ValidForm, _ = repo.DB.LastAvailabilitySearch(id, res.StartDate, res.EndDate)
+		form.ValidForm, _ = repo.DB.RoomAvailabilitySearch(id, res.StartDate, res.EndDate)
 
 		//Check Form Validation
 		if !form.IsValid() {

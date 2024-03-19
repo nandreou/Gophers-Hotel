@@ -81,7 +81,7 @@ func (db *DB) InsertRoomRestriction(rstr *models.RoomRestriction) (sql.Result, e
 	)
 }
 
-func (db *DB) LastAvailabilitySearch(id string, start_date, end_date time.Time) (bool, error) {
+func (db *DB) RoomAvailabilitySearch(id string, start_date, end_date time.Time) (bool, error) {
 	query := `SELECT room_restrictions.room_id FROM room_restrictions WHERE start_date < $2 AND end_date > $1 AND room_id = $3`
 
 	var (

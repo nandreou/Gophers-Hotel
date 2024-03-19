@@ -26,6 +26,8 @@ func Routers() http.Handler {
 	mux.Get("/search-availability", handlerfuntions.Repo.SearchAvailability)
 	mux.Post("/search-availability", handlerfuntions.Repo.SearchAvailability)
 
+	mux.Post("/search-availability-by-room", handlerfuntions.Repo.SearchAvailabilityByRoom)
+
 	mux.Get("/book-now/{id}", handlerfuntions.Repo.BookNow)
 	mux.Post("/book-now/{id}", handlerfuntions.Repo.BookNow)
 
