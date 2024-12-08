@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	dbData = "host=192.168.1.17 port=5432 dbname=mydb user=nick password=password"
+	dbData = "host=localhost port=5432 dbname=mydb user=nick password=password"
 )
 
 func main() {
